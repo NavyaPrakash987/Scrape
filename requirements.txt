@@ -1,0 +1,11 @@
+beautifulsoup4
+requests
+tldextract
+snscrape
+praw
+feedparser
+scikit-learn
+gensim
+nltk
+pandas
+numpy
