@@ -9,3 +9,8 @@ gensim
 nltk
 pandas
 numpy
+psaw
+newspaper3k
+tqdm
+python-dotenv
+lxml_html_clean

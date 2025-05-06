@@ -1,0 +1,9 @@
+.env
+data/*
+datasources.xlsx
+env/*
+mint_llm.zip
+modules.zip
+research.txt
+shine_app_content.json
+structure_modules.txt

@@ -2,16 +2,17 @@ import json
 import os
 from modules import *
 import logging
-from modules.reddit_scraper import scrape_reddit
-from modules.rss_monitor import fetch_rss_news
-from modules.twitter_scraper import scrape_twitter
-from modules.vector_store import build_vector_store, query_vector_store
-from modules.website_crawler import crawl_website
-from dotenv import  load_dotenv
+# from modules.reddit_scraper import scrape_reddit
+# from modules.rss_monitor import fetch_rss_news
+# from modules.twitter_scraper import scrape_twitter
+# from modules.vector_store import build_vector_store, query_vector_store
+# from modules.website_crawler import crawl_website
+# from dotenv import  load_dotenv
+from modules.request_utils import save_json
+from modules.reddit_scraper import init_reddit, scrape_keyword
+from psaw import PushshiftAPI
+import config
 
-load_dotenv()
-if not os.path.exists("data"):
-    os.mkdir("data")
 
 # ---- Configure Logging ----
 logging.basicConfig(
@@ -19,54 +20,28 @@ logging.basicConfig(
     format='[%(levelname)s] %(asctime)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
+
+if not os.path.exists('data/reddit'):
+    os.makedirs('data/reddit')
+
+
+reddit = init_reddit(config.REDDIT_CLIENT_ID, config.REDDIT_CLIENT_SECRET, config.REDDIT_USER_AGENT)
+
+for keyword in config.KEYWORDS:
+   
+    results = scrape_keyword(reddit, keyword,limit=1000, subreddit_name='all')
+    save_json(results, f"data/reddit/{keyword}_reddit_data.json")
+    print(f"✅ Saved {len(results)} posts for '{keyword}' to data/reddit/{keyword}_reddit_data.json")
+
+logging.info("Scraping complete ✅")
+
 # Crawl NPCI site
 # site_data = crawl_website("https://www.npci.org.in", max_pages=30)
 # logger.info("crawl NPCI site")
 # with open("data/npc_site_data.json", "w") as f:
 #     json.dump(site_data, f, indent=2)
 
-reddit_id = os.getenv("reddit_id")
-reddit_secret = os.getenv("reddit_secret")
-reddit_user_agent = os.getenv("reddit")
 
-# print(reddit_id , reddit_secret , reddit) 
-# # Scrape Reddit
-# reddit_posts = scrape_reddit(reddit_id, reddit_secret, reddit)
-# with open("data/reddit_posts.json", "w") as f:
-#     json.dump(reddit_posts, f, indent=2)
-
-if not all([reddit_id, reddit_secret, reddit_user_agent]):
-    logging.error("One or more Reddit credentials are missing. Check your .env file.")
-    exit(1)
-
-logging.info(f"Reddit client_id loaded: {reddit_id}")
-logging.info(f"Reddit user_agent loaded: {reddit_user_agent}")
-
-# ---- Create data directory if not exists ----
-if not os.path.exists("data"):
-    os.mkdir("data")
-    logging.info("Created 'data' directory")
-else:
-    logging.info("'data' directory already exists")
-
-# ---- Scrape Reddit ----
-logging.info("Starting Reddit scrape...")
-try:
-    reddit_posts = scrape_reddit(reddit_id, reddit_secret, reddit_user_agent)
-    logging.info(f"Scraped {len(reddit_posts)} posts from Reddit successfully")
-except Exception as e:
-    logging.error(f"Error during Reddit scraping: {e}")
-    exit(1)
-
-# ---- Save scraped posts ----
-output_file = "data/reddit_posts.json"
-try:
-    with open(output_file, "w") as f:
-        json.dump(reddit_posts, f, indent=2)
-    logging.info(f"Saved scraped posts to '{output_file}'")
-except Exception as e:
-    logging.error(f"Error saving scraped posts: {e}")
-    exit(1)
 
 # # Fetch RSS articles
 # rss_articles = fetch_rss_news()
